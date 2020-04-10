@@ -36,7 +36,7 @@ class ChatWindow:
         screen_width, screen_height = pygame.display.get_surface().get_size()
         text_y = 485
         # Make text objects to present both usernames
-        self.username_text = Text(self.screen, self.username, 0, text_y, (0, 0, 0), text_size=50)
+        self.username_text = Text(self.screen, self.username + " (you)", 0, text_y, (0, 0, 0), text_size=50)
         username_text_size = self.username_text.get_size()
         self.username_text.x = (FRAME_WIDTH - username_text_size[0]) // 2
 
