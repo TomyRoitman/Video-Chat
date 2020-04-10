@@ -6,6 +6,7 @@ from video_manager import Camera
 from screens.video_chat import ChatWindow
 from screens.main_menu import MainMenuWindow
 from screens.init_waiting import InitializerWaitingWindow
+from screens.insert_ID import InsertID
 import socket
 from network.TCP_communication import TCPStream
 from network.UDP_communication import UDPStream
@@ -69,35 +70,31 @@ def main():
             time.sleep(1.0 / FPS)
 
         params = response[2].split(",")
+        print(params)
         dst_ip = params[0].split("=")[1]
         dst_port = int(params[1].split("=")[1])
         dst_username = params[2].split("=")[1]
-        print(dst_ip)
-        print(dst_port)
-        print(dst_username)
+
         # now move to chat screen
 
     # if user wants to join, get his call ID
     if choice == "JOIN":
-        pass #TODO: add a user input screen for the ID
+        insert_ID_screen = InsertID(screen)
+        while insert_ID_screen.running:
+            insert_ID_screen.run()
+        ID = insert_ID_screen.ID
 
-
-
-
-
-    elif choice == "JOIN":
         msg = "ID={},PORT={},USERNAME={}".format(ID, UDP_PORT, username)
-    tcp_stream.send_by_size(msg_code, msg)
-    dst = tcp_stream.recv_by_size()
-    print(dst)
+        tcp_stream.send_by_size(msg_code, msg)
+        response = tcp_stream.recv_by_size()
+        params = response[2].split(",")
+        print(params)
+        dst_ip = params[0].split("=")[1]
+        dst_port = int(params[1].split("=")[1])
+        dst_username = params[2].split("=")[1]
 
-    params = dst[2].split(",")
-    dst_ip = params[0].split("=")[1]
-    dst_port = int(params[1].split("=")[1])
 
-
-
-    chat_screen = ChatWindow(screen)
+    chat_screen = ChatWindow(screen, username, dst_username)
     user_camera = Camera()
     udp_stream = UDPStream(UDP_IP, UDP_PORT, FPS)
 
@@ -106,21 +103,19 @@ def main():
 
     lock = threading.Lock()
 
-
-    while user_window.running:
+    while chat_screen.running:
 
         # handle user output
         user_output = user_camera.export_update_frame()
         if user_output is not None:
             udp_stream.send_frame(user_output, dst_ip, dst_port)
-            user_window.update_user_input(user_output)
+            chat_screen.update_user_input(user_output)
 
         lock.acquire()
         if udp_stream.participant_frame is not None:
-            user_window.update_participant_input(udp_stream.participant_frame)
+           chat_screen.update_participant_input(udp_stream.participant_frame)
         lock.release()
-
-        user_window.run()
+        chat_screen.run()
         # print("FPS: ", user_window.get_fps())
         time.sleep(1 / FPS)
 

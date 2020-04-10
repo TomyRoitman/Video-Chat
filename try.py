@@ -24,13 +24,13 @@ DISPLAY_SIZE = [1280, 720]
 import pygame
 
 from screens.main_menu import MainMenuWindow
+from screens.insert_ID import InsertID
 pygame.init()
 pygame.display.set_caption("Video Chat")
 screen = pygame.display.set_mode(DISPLAY_SIZE)
-main_menu = MainMenuWindow(screen)
+insert_ID_screen = InsertID(screen)
 
-while main_menu.running:
-    main_menu.run()
+while insert_ID_screen.running:
+    insert_ID_screen.run()
 
-print("Choice: ", main_menu.choice)
-print("Name: ", main_menu.username)
+print("ID: ", insert_ID_screen.ID)
