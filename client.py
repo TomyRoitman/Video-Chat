@@ -2,7 +2,7 @@ import time
 from video_manager import Camera
 from window.window_manager import Window
 import socket
-from communication import UDPStream, TCPStream
+from network.communication import UDPStream, TCPStream
 import threading
 
 FPS = 24
