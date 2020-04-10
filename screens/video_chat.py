@@ -1,8 +1,8 @@
 import cv2
 import pygame
 import numpy as np
-from window.button import Button
-from window.text_box import TextBox
+from screens.attributes.button import Button
+from screens.attributes.text_box import TextBox
 
 DISPLAY_SIZE = [1280, 720]
 BACKGROUND_COLOR = (255, 255, 255)
@@ -14,7 +14,7 @@ USER_INPUT_LOCATION = (0, 0)
 PARTICIPANT_INPUT_LOCATION = (DISPLAY_SIZE[0] - FRAME_WIDTH, 0)
 
 
-class Window:
+class ChatWindow:
 
     def __init__(self, caption):
         """

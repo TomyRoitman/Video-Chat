@@ -51,7 +51,7 @@ class Button:
         self.screen.blit(self.image, self.pos)
 
     def show_text(self):
-        font = pygame.font.SysFont(self.font_name, self.font_size, )
+        font = pygame.font.SysFont(self.font_name, self.font_size)
         text = font.render(self.text, False, self.text_color)
         size = text.get_size()
         x, y = self.width // 2 - size[0] // 2, self.height // 2 - size[1] // 2

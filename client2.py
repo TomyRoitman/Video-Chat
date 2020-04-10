@@ -1,9 +1,13 @@
-import threading
 import time
+
+import pygame
+
 from video_manager import Camera
-from window.window_manager import Window
+from screens.video_chat import ChatWindow
 import socket
-from network.communication import UDPStream, TCPStream
+from network.TCP_communication import TCPStream
+from network.UDP_communication import UDPStream
+import threading
 
 FPS = 24
 UDP_IP = '0.0.0.0'
@@ -13,6 +17,7 @@ MSG_SIZE_HEADER_SIZE = 8
 MSG_CHUNK_SIZE = 1024
 SERVER_IP = '192.168.1.41'
 SERVER_PORT = 11233
+DISPLAY_SIZE = [1280, 720]
 
 
 
@@ -23,7 +28,7 @@ def main():
     tcp_stream = TCPStream(server_socket)
 
     msg_code = "JOIN"
-    msg = "ID=1,PORT={}".format(UDP_PORT)
+    msg = "ID=1,PORT={},USERNAME=TOMY".format(UDP_PORT)
     tcp_stream.send_by_size(msg_code, msg)
     dst = tcp_stream.recv_by_size()
     print(dst)
@@ -31,10 +36,11 @@ def main():
     dst_ip = params[0].split("=")[1]
     dst_port = int(params[1].split("=")[1])
 
+    pygame.init()
+    pygame.display.set_caption("Video Chat")
+    screen = pygame.display.set_mode(DISPLAY_SIZE)
 
-
-
-    user_window = Window("Client2")
+    user_window = ChatWindow(screen)
     user_camera = Camera()
     udp_stream = UDPStream(UDP_IP, UDP_PORT, FPS)
 

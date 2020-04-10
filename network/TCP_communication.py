@@ -38,6 +38,30 @@ class TCPStream:
 
         return msg_code, content_length, content
 
+    def recv_by_size_with_timeout(self, interval):
+        self.client_socket.settimeout(interval)
+        msg_code = ""
+        while len(msg_code) < MSG_CODE_SIZE:
+            try:
+                msg_code += self.client_socket.recv(MSG_CODE_SIZE - len(msg_code)).decode()
+            except socket.timeout:
+                return "Not received yet"
+        size_header = ""
+        while len(size_header) < MSG_SIZE_HEADER_SIZE:
+            try:
+                size_header += self.client_socket.recv(MSG_SIZE_HEADER_SIZE - len(size_header)).decode()
+            except socket.timeout:
+                return "Not received yet"
+        content_length = int(size_header)
+        content = ""
+        while len(content) < content_length:
+            try:
+                content += self.client_socket.recv(content_length - len(content)).decode()
+            except socket.timeout:
+                return "Not received yet"
+
+        return msg_code, content_length, content
+
     def __split_by_len(self, seq, length):
         return [seq[x: x + length] for x in range(0, len(seq), length)]
 

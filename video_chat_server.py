@@ -18,13 +18,14 @@ users_id = 0
 
 
 class User:
-    def __init__(self, msg_code, ip, port):
+    def __init__(self, msg_code, ip, port, username):
         self.msg_code = msg_code
         self.ip = ip
         self.port = port
         self.id = None
         self.matched = False
         self.match = ""
+        self.username = username
 
 
 def recv_by_size(client_socket):
@@ -60,18 +61,17 @@ def send_by_size(client_socket, msg_code, content):
 def interpret_entry(msg):
     print(msg)
     params = msg.split(",")
-    if "," in msg:
-        id = params[0].split("=")[1]
+    id = params[0].split("=")[1]
+    username = params[-1].split("=")[1]
+    if len(params) > 2:
         port = params[1].split("=")[1]
-        return id, port
+        return id, port, username
     else:
-        port = msg.split("=")[1]
-        print(port)
-        return port
-
+        port = id
+        return port, username
 
 def export_user_info(user):
-    return "ip={},port={}".format(user.ip, user.port)
+    return "ip={},port={},username={}".format(user.ip, user.port,user.username)
 
 
 def handle_client(client_socket, address):
@@ -85,29 +85,21 @@ def handle_client(client_socket, address):
     new_user = ""
     if msg_code == "INIT":  # Initialize call
         # Save user in the global dictionary
-        port = int(interpret_entry(content))
-        new_user = User(msg_code, ip_address, port)
-        lock.acquire()
-        users_id += 1
-        users[users_id] = new_user
-        new_user.id = users_id
-        lock.release()
-
-
-    elif msg_code == "JOIN":
-        # Save user in the global dictionary
-        id, port = interpret_entry(content)
+        port, username = interpret_entry(content)
         port = int(port)
-        id = int(id)
-        new_user = User(msg_code, ip_address, int(port))
-        lock = threading.Lock()
+        new_user = User(msg_code, ip_address, port, username)
         lock.acquire()
         users_id += 1
         users[users_id] = new_user
         new_user.id = users_id
-        lock.release()
 
-    if msg_code == "INIT":
+        lock.release()
+        send_by_size(client_socket, "VCID", str(new_user.id).zfill(4))
+        response = recv_by_size(client_socket)
+        if response[2] != "OK":
+            print("Something failed!")
+            client_socket.close()
+            return
         lock.acquire()
         found = new_user.matched
         lock.release()
@@ -121,6 +113,18 @@ def handle_client(client_socket, address):
         client_socket.close()
 
     elif msg_code == "JOIN":
+        # Save user in the global dictionary
+        id, port, username = interpret_entry(content)
+        port = int(port)
+        id = int(id)
+        new_user = User(msg_code, ip_address, int(port), username)
+        lock = threading.Lock()
+        lock.acquire()
+        users_id += 1
+        users[users_id] = new_user
+        new_user.id = users_id
+        lock.release()
+
         lock.acquire()
         users[id].match = export_user_info(new_user)
         users[id].matched = True
