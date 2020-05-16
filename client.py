@@ -117,7 +117,8 @@ def main():
         lock.release()
         chat_screen.run()
         # print("FPS: ", user_window.get_fps())
-        time.sleep(1 / FPS)
+        # time.sleep(1 / FPS)
+        pygame.time.wait(int((1 / FPS) * 1000))
 
 
 if __name__ == '__main__':
