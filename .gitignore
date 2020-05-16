@@ -1,3 +1,4 @@
 client2.py
-*/.idea
-*/__pycache__
+__pycache__/
+experiment/
+.idea/
