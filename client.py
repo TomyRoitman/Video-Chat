@@ -106,9 +106,11 @@ def main():
     while chat_screen.running:
 
         # handle user output
+
         user_output = user_camera.export_update_frame()
         if user_output is not None:
-            udp_stream.send_frame(user_output, dst_ip, dst_port)
+            for i in range(2):
+                udp_stream.send_frame(user_output, dst_ip, dst_port)
             chat_screen.update_user_input(user_output)
 
         lock.acquire()
@@ -118,7 +120,7 @@ def main():
         chat_screen.run()
         # print("FPS: ", user_window.get_fps())
         # time.sleep(1 / FPS)
-        pygame.time.wait(int((1 / FPS) * 1000))
+        pygame.time.wait(int((1.0 / FPS) * 1000))
 
 
 if __name__ == '__main__':
