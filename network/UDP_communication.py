@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 
-FPS = 100
+FPS = 24
 UDP_IP = '127.0.0.1'
 UDP_PORT = 10000
 MSG_CODE_SIZE = 4
@@ -90,25 +90,32 @@ class UDPStream:
         self.user_frame = None
         self.lock = threading.Lock()
         self.FPS = FPS
+        self.last = None
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
     def send_frame(self, frame, ip, port):
         addr = (ip, port)
         buf = self.buf
         # code = 'start'
         # code = ('start' + (buf - len(code)) * 'a').encode('utf-8')
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock = self.sock
         # sock.sendto(code, addr)
         d = frame.flatten()
         s = d.tostring()
         chunks = [s[i:i + buf] for i in range(0, len(s), buf)]
         # print(chunks[0])
-        for i in range(len(chunks)):
-            if i > 0:
-                packed_index = struct.pack('!i', i - 1)
-                sock.sendto(packed_index + chunks[i - 1], addr)
-            packed_index = struct.pack('!i', i)
-            for j in range(3):
-                sock.sendto(packed_index + chunks[i], addr)
+        times_to_send = 3
+        for j in range(times_to_send):
+            for i in range(len(chunks)):
+                if self.last is not None and chunks[i] not in self.last:
+                    if i > 0:
+                        packed_index = struct.pack('!i', i - 1)
+                        sock.sendto(packed_index + chunks[i - 1], addr)
+                    packed_index = struct.pack('!i', i)
+                    sock.sendto(packed_index + chunks[i], addr)
+            if times_to_send > 1:
+                time.sleep((1.0 / FPS) / (times_to_send - 1))
+        self.last = chunks
 
     def recv_frame(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
