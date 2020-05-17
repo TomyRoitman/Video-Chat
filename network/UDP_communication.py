@@ -107,7 +107,8 @@ class UDPStream:
                 packed_index = struct.pack('!i', i - 1)
                 sock.sendto(packed_index + chunks[i - 1], addr)
             packed_index = struct.pack('!i', i)
-            sock.sendto(packed_index + chunks[i], addr)
+            for j in range(3):
+                sock.sendto(packed_index + chunks[i], addr)
 
     def recv_frame(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)

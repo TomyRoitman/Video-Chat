@@ -109,7 +109,7 @@ def main():
 
         user_output = user_camera.export_update_frame()
         if user_output is not None:
-            for i in range(2):
+            for i in range(1):
                 udp_stream.send_frame(user_output, dst_ip, dst_port)
             chat_screen.update_user_input(user_output)
 

@@ -51,9 +51,9 @@ class ChatWindow:
         self.draw()
 
     def events(self):
-        # for event in pygame.event.get():
-        #     if event.type == pygame.QUIT:
-        #         self.running = False
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
         #     if event.type == pygame.MOUSEBUTTONDOWN:
         #         if self.button.hovered:
         #             self.button.click()
@@ -61,7 +61,7 @@ class ChatWindow:
         #             self.text_box.click()
         #     if event.type == pygame.KEYDOWN:
         #         self.text_box.user_input(event)
-        pass
+
 
     def update(self):
         # mouse_pos = pygame.mouse.get_pos()
@@ -72,7 +72,6 @@ class ChatWindow:
         self.username_text.draw()
         self.participant_username_text.draw()
         pygame.display.update()
-
 
 
     def update_user_input(self, frame):
