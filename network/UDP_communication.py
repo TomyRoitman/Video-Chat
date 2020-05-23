@@ -28,7 +28,7 @@ class UDPStream:
         self.width = 640
         self.buf = 1024
         num_of_chunks = self.width * self.height * 3 / self.buf
-
+        num_of_chunks = num_of_chunks * 0.09
         self.participant_frame_chunks = [b'\xc8\xcd\xdf\xc7\xcc\xde\xc6\xca\xde\xc6\xca\xde\xca\xca\xde\xca\xca\xde'
                                          b'\xca\xcc\xd7\xcb\xcd\xd8\xc8\xca\xde\xc5\xc8\xdc\xc8\xc7\xd7\xc8\xc7\xd7'
                                          b'\xc9\xca\xd9\xc9\xca\xd9\xc5\xc9\xd8\xc4\xc7\xd7\xc5\xc8\xdc\xc7\xc9\xdd'
@@ -111,6 +111,7 @@ class UDPStream:
                     if i > 0:
                         packed_index = struct.pack('!i', i - 1)
                         sock.sendto(packed_index + chunks[i - 1], addr)
+                        # sock.sendto(packed_index + chunks[i - 1], addr)
             if times_to_send > 1:
                 time.sleep((1.0 / FPS) / (times_to_send - 1))
         self.last = chunks
