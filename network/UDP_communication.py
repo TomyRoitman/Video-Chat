@@ -104,15 +104,13 @@ class UDPStream:
         s = d.tostring()
         chunks = [s[i:i + buf] for i in range(0, len(s), buf)]
         # print(chunks[0])
-        times_to_send = 3
+        times_to_send = 1
         for j in range(times_to_send):
             for i in range(len(chunks)):
                 if self.last is not None and chunks[i] not in self.last:
                     if i > 0:
                         packed_index = struct.pack('!i', i - 1)
                         sock.sendto(packed_index + chunks[i - 1], addr)
-                    packed_index = struct.pack('!i', i)
-                    sock.sendto(packed_index + chunks[i], addr)
             if times_to_send > 1:
                 time.sleep((1.0 / FPS) / (times_to_send - 1))
         self.last = chunks
@@ -138,9 +136,9 @@ class UDPStream:
                 self.participant_frame_chunks[unpacked_index] = chunk
 
             byte_frame = b''.join(self.participant_frame_chunks)
-
-            frame = np.frombuffer(
-                byte_frame, dtype=np.uint8).reshape(self.height, self.width, 3)
+            frame = byte_frame
+            # frame = np.frombuffer(
+            #     byte_frame, dtype=np.uint8).reshape(self.height, self.width, 3)
             self.lock.acquire()
             self.participant_frame = frame
             self.lock.release()

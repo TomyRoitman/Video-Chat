@@ -88,6 +88,7 @@ class ChatWindow:
         pygame.quit()
 
     def __form_input(self, frame):
+        frame = cv2.imdecode(np.fromstring(frame, dtype=np.uint8), -1)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         frame = np.rot90(frame)
         return frame

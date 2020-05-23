@@ -17,7 +17,8 @@ class Camera:
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # frame = np.rot90(frame)
         frame = self.__image_resize(frame, width=640)
-        return frame
+        _, encoded = cv2.imencode('.JPEG', frame)
+        return encoded
 
     def share_screen(self):
         printscreen_pil = ImageGrab.grab()
