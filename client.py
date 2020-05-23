@@ -12,7 +12,7 @@ from network.TCP_communication import TCPStream
 from network.UDP_communication import UDPStream
 import threading
 
-FPS = 24
+FPS = 50
 UDP_IP = '0.0.0.0'
 UDP_PORT = 10000
 MSG_CODE_SIZE = 4
