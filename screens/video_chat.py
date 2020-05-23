@@ -43,7 +43,7 @@ class ChatWindow:
         self.participant_username_text = Text(self.screen, self.participant_username, 0, text_y, (0, 0, 0), text_size=50)
         participant_username_text_size = self.participant_username_text.get_size()
         self.participant_username_text.x = FRAME_WIDTH + (FRAME_WIDTH - participant_username_text_size[0]) // 2
-
+        self.frame_validation = [False, False]
 
     def run(self):
         self.events()
@@ -75,24 +75,29 @@ class ChatWindow:
 
 
     def update_user_input(self, frame):
-        frame = self.__form_input(frame)
-        self.user_input = pygame.surfarray.make_surface(frame)
-        self.screen.blit(self.user_input, USER_INPUT_LOCATION)
+        frame_id = 0
+        frame = self.__form_input(frame, frame_id)
+        if self.frame_validation[frame_id]:
+            self.user_input = pygame.surfarray.make_surface(frame)
+            self.screen.blit(self.user_input, USER_INPUT_LOCATION)
 
     def update_participant_input(self, frame):
-        frame = self.__form_input(frame)
-        self.participant_input = pygame.surfarray.make_surface(frame)
-        self.screen.blit(self.participant_input, PARTICIPANT_INPUT_LOCATION)
+        frame_id = 1
+        frame = self.__form_input(frame, frame_id)
+        if self.frame_validation[frame_id]:
+            self.participant_input = pygame.surfarray.make_surface(frame)
+            self.screen.blit(self.participant_input, PARTICIPANT_INPUT_LOCATION)
 
     def terminate_window(self):
         pygame.quit()
 
-    def __form_input(self, frame):
+    def __form_input(self, frame, frame_id):
         try:
             frame = cv2.imdecode(np.fromstring(frame, dtype=np.uint8), -1)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
+            self.frame_validation[frame_id] = True
         except:
             print('failed decoding frame')
-
+            self.frame_validation[frame_id] = False
         return frame
