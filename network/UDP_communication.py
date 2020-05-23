@@ -104,17 +104,17 @@ class UDPStream:
         s = d.tostring()
         chunks = [s[i:i + buf] for i in range(0, len(s), buf)]
         # print(chunks[0])
-        times_to_send = 1
+        times_to_send = 2
+        last_index = len(chunks) - 1
         for j in range(times_to_send):
             for i in range(len(chunks)):
-                if self.last is not None and chunks[i] not in self.last:
-                    if i > 0:
-                        packed_index = struct.pack('!i', i - 1)
-                        sock.sendto(packed_index + chunks[i - 1], addr)
-                        # sock.sendto(packed_index + chunks[i - 1], addr)
+                if i > 0:
+                    packed_index = struct.pack('!i', i - 1)
+                    packed_last_index = struct.pack('!i', last_index)
+                    sock.sendto(packed_index + packed_last_index + chunks[i - 1], addr)
             if times_to_send > 1:
                 time.sleep((1.0 / FPS) / (times_to_send - 1))
-        self.last = chunks
+
 
     def recv_frame(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -125,18 +125,23 @@ class UDPStream:
         # start_time = time.time()
         # x = 1  # displays the frame rate every 1 second
         # counter = 0
+        packed_last_index = ""
+        unpacked_last_index = 0
         while True:
             chunks_received = 0
             start_log = time.time()
             while time.time() - start_log < 1.0 / self.FPS:
                 chunks_received += 1
-                chunk, _ = sock.recvfrom(self.buf + 4)
+                chunk, _ = sock.recvfrom(self.buf + 8)
                 packed_index = chunk[:4]
-                chunk = chunk[4:]
+                chunk = chunk[8:]
                 unpacked_index = struct.unpack('!i', packed_index)[0]
+                if packed_last_index != chunk[4:8]:
+                    packed_last_index = chunk[4:8]
+                    unpacked_last_index = struct.unpack('!i', packed_last_index)[0]
                 self.participant_frame_chunks[unpacked_index] = chunk
 
-            byte_frame = b''.join(self.participant_frame_chunks)
+            byte_frame = b''.join(self.participant_frame_chunks[:unpacked_last_index])
             frame = byte_frame
             # frame = np.frombuffer(
             #     byte_frame, dtype=np.uint8).reshape(self.height, self.width, 3)
