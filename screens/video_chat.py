@@ -96,7 +96,7 @@ class ChatWindow:
             frame = cv2.imdecode(np.fromstring(frame, dtype=np.uint8), -1)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
-            frame = self.__image_resize(frame, width=600)
+            frame = self.__image_resize(frame, width=640)
             self.frame_validation[frame_id] = True
         except:
             print('failed decoding frame')
@@ -108,7 +108,7 @@ class ChatWindow:
         # initialize the dimensions of the image to be resized and
         # grab the image size
         dim = None
-        (h, w) = image.shape[:2]
+        (w, h) = image.shape[:2]
 
         # if both the width and height are None, then return the
         # original image
@@ -127,8 +127,7 @@ class ChatWindow:
             # calculate the ratio of the width and construct the
             # dimensions
             r = width / float(w)
-            dim = (width, int(h * r))
-
+            dim = (int(h * r), width)
         # resize the image
         resized = cv2.resize(image, dim, interpolation=inter)
 

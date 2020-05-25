@@ -45,7 +45,7 @@ class Camera:
         # initialize the dimensions of the image to be resized and
         # grab the image size
         dim = None
-        (h, w) = image.shape[:2]
+        (w, h) = image.shape[:2]
 
         # if both the width and height are None, then return the
         # original image
@@ -64,8 +64,7 @@ class Camera:
             # calculate the ratio of the width and construct the
             # dimensions
             r = width / float(w)
-            dim = (width, int(h * r))
-
+            dim = (int(h * r), width)
         # resize the image
         resized = cv2.resize(image, dim, interpolation=inter)
 
