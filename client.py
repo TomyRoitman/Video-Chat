@@ -110,7 +110,9 @@ def main():
 
         user_output = user_camera.export_update_frame()
         if user_output is not None:
-            udp_stream.send_frame(user_output[1], dst_ip, dst_port)
+            udp_sender = threading.Thread(target=udp_stream.send_frame, args=(user_output[1], dst_ip, dst_port))
+            udp_sender.start()
+            # udp_stream.send_frame(user_output[1], dst_ip, dst_port)
             chat_screen.update_user_input(user_output[0])
 
         lock.acquire()
