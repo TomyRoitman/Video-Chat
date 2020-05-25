@@ -96,7 +96,7 @@ class ChatWindow:
             frame = cv2.imdecode(np.fromstring(frame, dtype=np.uint8), -1)
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frame = np.rot90(frame)
-            frame = self.__image_resize(frame, height=480)
+            frame = self.__image_resize(frame, width=600)
             self.frame_validation[frame_id] = True
         except:
             print('failed decoding frame')
