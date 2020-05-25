@@ -110,8 +110,8 @@ def main():
 
         user_output = user_camera.export_update_frame()
         if user_output is not None:
-            udp_stream.send_frame(user_output, dst_ip, dst_port)
-            chat_screen.update_user_input(user_output)
+            udp_stream.send_frame(user_output[1], dst_ip, dst_port)
+            chat_screen.update_user_input(user_output[0])
 
         lock.acquire()
         if udp_stream.received_frames > last_participant_frame:

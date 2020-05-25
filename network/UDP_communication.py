@@ -106,7 +106,7 @@ class UDPStream:
         # print('\n\n\n\n frame => ', len(s))
         chunks = [s[i:i + buf] for i in range(0, len(s), buf)]
         # print(chunks[0])
-        times_to_send = 1
+        times_to_send = 2
         last_index = len(chunks) - 2
         packed_last_index = struct.pack('!i', last_index)
         # print('last index', last_index, packed_last_index)
@@ -116,7 +116,7 @@ class UDPStream:
                     packed_index = struct.pack('!i', i - 1)
                     # print('index', i - 1, packed_index)
                     sock.sendto(packed_index + packed_last_index + chunks[i - 1], addr)
-                    sock.sendto(packed_index + packed_last_index + chunks[i - 1], addr)
+                    # sock.sendto(packed_index + packed_last_index + chunks[i - 1], addr)
             # if times_to_send > 1:
             #     time.sleep((1.0 / FPS) / (times_to_send - 1))
 
@@ -134,7 +134,7 @@ class UDPStream:
             packed_last_index = ""
             unpacked_last_index = 1
             unpacked_index = 0
-            print('\n\nstart: ', unpacked_index, '/', unpacked_last_index, packed_last_index)
+            # print('\n\nstart: ', unpacked_index, '/', unpacked_last_index, packed_last_index)
             chunks_received = 0
             start_log = time.time()
             while unpacked_index < unpacked_last_index:
@@ -152,7 +152,7 @@ class UDPStream:
                 chunk = chunk[8:]
                 self.participant_frame_chunks[unpacked_index] = chunk
 
-            print('end: ', unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
+            # print('end: ', unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
             byte_frame = b''.join(self.participant_frame_chunks[:unpacked_last_index + 2])
             frame = byte_frame
             # frame = np.frombuffer(

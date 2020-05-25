@@ -12,13 +12,22 @@ class Camera:
         self.__update_frame()
         return self.export_frame()
 
-    def export_frame(self):
-        ret, frame = self.camera.read()
+    def export_frame(self, height=None, width=None):
+        ret, original_frame = self.camera.read()
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # frame = np.rot90(frame)
-        frame = self.__image_resize(frame, width=360)
-        _, encoded = cv2.imencode('.JPEG', frame)
-        return encoded
+        if height:
+            original_frame = self.__image_resize(original_frame, height=height)
+        elif width:
+            original_frame = self.__image_resize(original_frame, width=width)
+
+        _, original_encoded = cv2.imencode('.JPEG', original_frame)
+
+        exported_frame = np.copy(original_frame)
+        exported_frame = self.__image_resize(exported_frame, width=360)
+        _, exported_encoded = cv2.imencode('.JPEG', exported_frame)
+
+        return (original_encoded, exported_encoded)
 
     def share_screen(self):
         printscreen_pil = ImageGrab.grab()
