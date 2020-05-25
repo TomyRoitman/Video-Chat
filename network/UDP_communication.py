@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 
-FPS = 50
+FPS = 24
 UDP_IP = '127.0.0.1'
 UDP_PORT = 10000
 MSG_CODE_SIZE = 4
@@ -27,6 +27,7 @@ class UDPStream:
         self.height = 480
         self.width = 640
         self.buf = 1024
+        self.received_frames = 0
         num_of_chunks = self.width * self.height * 3 / self.buf
         num_of_chunks = num_of_chunks * 0.09
         self.participant_frame_chunks = [b'\xc8\xcd\xdf\xc7\xcc\xde\xc6\xca\xde\xc6\xca\xde\xca\xca\xde\xca\xca\xde'
@@ -102,18 +103,22 @@ class UDPStream:
         # sock.sendto(code, addr)
         d = frame.flatten()
         s = d.tostring()
+        # print('\n\n\n\n frame => ', len(s))
         chunks = [s[i:i + buf] for i in range(0, len(s), buf)]
         # print(chunks[0])
         times_to_send = 1
-        last_index = len(chunks) - 1
+        last_index = len(chunks) - 2
+        packed_last_index = struct.pack('!i', last_index)
+        # print('last index', last_index, packed_last_index)
         for j in range(times_to_send):
             for i in range(len(chunks)):
                 if i > 0:
                     packed_index = struct.pack('!i', i - 1)
-                    packed_last_index = struct.pack('!i', last_index)
+                    # print('index', i - 1, packed_index)
                     sock.sendto(packed_index + packed_last_index + chunks[i - 1], addr)
-            if times_to_send > 1:
-                time.sleep((1.0 / FPS) / (times_to_send - 1))
+                    sock.sendto(packed_index + packed_last_index + chunks[i - 1], addr)
+            # if times_to_send > 1:
+            #     time.sleep((1.0 / FPS) / (times_to_send - 1))
 
 
     def recv_frame(self):
@@ -125,28 +130,36 @@ class UDPStream:
         # start_time = time.time()
         # x = 1  # displays the frame rate every 1 second
         # counter = 0
-        packed_last_index = ""
-        unpacked_last_index = 0
         while True:
+            packed_last_index = ""
+            unpacked_last_index = 1
+            unpacked_index = 0
+            print('\n\nstart: ', unpacked_index, '/', unpacked_last_index, packed_last_index)
             chunks_received = 0
             start_log = time.time()
-            while time.time() - start_log < 1.0 / self.FPS:
+            while unpacked_index < unpacked_last_index:
                 chunks_received += 1
                 chunk, _ = sock.recvfrom(self.buf + 8)
                 packed_index = chunk[:4]
-                chunk = chunk[8:]
                 unpacked_index = struct.unpack('!i', packed_index)[0]
                 if packed_last_index != chunk[4:8]:
                     packed_last_index = chunk[4:8]
-                    unpacked_last_index = struct.unpack('!i', packed_last_index)[0]
+                    unpacked_new_last_index = struct.unpack('!i', packed_last_index)[0]
+                    if unpacked_new_last_index > 0:
+                        unpacked_last_index = unpacked_new_last_index
+                # print(unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
+
+                chunk = chunk[8:]
                 self.participant_frame_chunks[unpacked_index] = chunk
 
-            byte_frame = b''.join(self.participant_frame_chunks[:unpacked_last_index])
+            print('end: ', unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
+            byte_frame = b''.join(self.participant_frame_chunks[:unpacked_last_index + 2])
             frame = byte_frame
             # frame = np.frombuffer(
             #     byte_frame, dtype=np.uint8).reshape(self.height, self.width, 3)
             self.lock.acquire()
             self.participant_frame = frame
+            self.received_frames += 1
             self.lock.release()
             # counter += 1
             # if (time.time() - start_time) > x:

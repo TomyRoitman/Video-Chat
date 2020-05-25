@@ -16,7 +16,7 @@ class Camera:
         ret, frame = self.camera.read()
         # frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         # frame = np.rot90(frame)
-        frame = self.__image_resize(frame, width=640)
+        frame = self.__image_resize(frame, width=360)
         _, encoded = cv2.imencode('.JPEG', frame)
         return encoded
 

@@ -1,5 +1,6 @@
 import time
 
+import cv2
 import pygame
 
 from video_manager import Camera
@@ -12,7 +13,7 @@ from network.TCP_communication import TCPStream
 from network.UDP_communication import UDPStream
 import threading
 
-FPS = 50
+FPS = 24
 UDP_IP = '0.0.0.0'
 UDP_PORT = 10000
 MSG_CODE_SIZE = 4
@@ -102,7 +103,7 @@ def main():
     frame_receiver.start()
 
     lock = threading.Lock()
-
+    last_participant_frame = 0
     while chat_screen.running:
 
         # handle user output
@@ -113,14 +114,16 @@ def main():
             chat_screen.update_user_input(user_output)
 
         lock.acquire()
-        if udp_stream.participant_frame is not None:
-           chat_screen.update_participant_input(udp_stream.participant_frame)
+        if udp_stream.received_frames > last_participant_frame:
+            chat_screen.update_participant_input(udp_stream.participant_frame)
+            last_participant_frame += 1
         lock.release()
         chat_screen.run()
         # print("FPS: ", user_window.get_fps())
         # time.sleep(1 / FPS)
-        pygame.time.wait(int((1.0 / FPS) * 1000))
-
+        # pygame.time.wait(int((1.0 / FPS) * 1000))
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
 if __name__ == '__main__':
     main()
