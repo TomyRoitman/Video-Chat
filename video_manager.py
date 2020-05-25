@@ -29,11 +29,10 @@ class Camera:
     def __update_frame(self):
         pass
 
-
     def __process_image(self):
         pass
 
-    def __image_resize(self, image, width = None, height = None, inter = cv2.INTER_AREA):
+    def __image_resize(self, image, width=None, height=None, inter=cv2.INTER_AREA):
         # initialize the dimensions of the image to be resized and
         # grab the image size
         dim = None

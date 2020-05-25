@@ -5,7 +5,7 @@ import time
 
 import numpy as np
 
-FPS = 24
+FPS = 50
 UDP_IP = '127.0.0.1'
 UDP_PORT = 10000
 MSG_CODE_SIZE = 4
@@ -104,7 +104,7 @@ class UDPStream:
         s = d.tostring()
         chunks = [s[i:i + buf] for i in range(0, len(s), buf)]
         # print(chunks[0])
-        times_to_send = 2
+        times_to_send = 1
         last_index = len(chunks) - 1
         for j in range(times_to_send):
             for i in range(len(chunks)):
