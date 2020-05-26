@@ -55,7 +55,7 @@ def main():
     ID = ""
     dst_ip, dst_video_port, dst_sound_port, dst_username = 0, 0, 0, 0
     if choice == "INIT":
-        msg = "PORT={},USERNAME={}".format(UDP_VIDEO_PORT, UDP_AUDIO_PORT, username)
+        msg = "VPORT={},SPORT={},USERNAME={}".format(UDP_VIDEO_PORT, UDP_AUDIO_PORT, username)
         tcp_stream.send_by_size(msg_code, msg)
         response = tcp_stream.recv_by_size()
         if response[0] != 'VCID':
@@ -71,7 +71,6 @@ def main():
                 break
             waiting_screen.run()
             time.sleep(1.0 / FPS)
-
         params = response[2].split(",")
         print(params)
         dst_ip = params[0].split("=")[1]
@@ -153,7 +152,7 @@ def main():
         # handle user sound stream
         lock.acquire()
         user_audio_output = user_aduio.export_sound()
-        if user_audio_output:
+        if user_audio_output is not None:
             udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
                                                 args=(user_audio_output, dst_ip, dst_sound_port))
             udp_frame_sender.start()

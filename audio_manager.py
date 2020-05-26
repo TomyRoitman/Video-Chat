@@ -6,7 +6,7 @@ class Audio():
 
     def __init__(self, muted=False, FPS=24):
         self.fs = 44100  # Sample rate
-        self.seconds = 1.0 / FPS
+        self.seconds = 2
         self.current_playing = None
         self.participant_tracks_in_queue = []
         self.running = True
