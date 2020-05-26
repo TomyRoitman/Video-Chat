@@ -21,7 +21,7 @@ UDP_AUDIO_PORT = 10001
 MSG_CODE_SIZE = 4
 MSG_SIZE_HEADER_SIZE = 8
 MSG_CHUNK_SIZE = 1024
-SERVER_IP = '192.168.1.41'
+SERVER_IP = '192.168.99.92'
 SERVER_PORT = 11233
 DISPLAY_SIZE = [1280, 720]
 
@@ -116,19 +116,22 @@ def main():
     lock = threading.Lock()
 
     # initiate an audio object
-    user_aduio = Audio()
+    user_audio = Audio()
 
-    # # initiate method on a new thread to receive sound from participant
-    # sound_receiver = threading.Thread(target=udp_stream.received_tracks)
-    # sound_receiver.start()
-    # 
-    # # initiate method on a new thread to play participant sound
-    # sound_player = threading.Thread(target=user_aduio.play_sound)
-    # sound_player.start()
-    #
-    # # initiate method on a new thread to record user sound
-    # sound_recorder = threading.Thread(target=user_aduio.sound_recorder)
-    # sound_recorder.start()
+    # initiate method on a new thread to receive sound from participant
+    sound_receiver = threading.Thread(target=udp_stream.recv_track)
+    sound_receiver.start()
+
+    # initiate method on a new thread to play participant sound
+    sound_player = threading.Thread(target=user_audio.play_sound)
+    sound_player.start()
+
+    # initiate method on a new thread to record user sound
+    sound_recorder = threading.Thread(target=user_audio.sound_recorder)
+    sound_recorder.start()
+
+    # initiate sound variables
+    last_participant_track = 0
 
     while chat_screen.running:
 
@@ -150,13 +153,20 @@ def main():
         chat_screen.run()
 
         # handle user sound stream
-        # lock.acquire()
-        # user_audio_output = user_aduio.export_sound()
-        # if user_audio_output is not None:
-        #     udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
-        #                                         args=(user_audio_output, dst_ip, dst_sound_port))
-        #     udp_frame_sender.start()
-        # lock.release()
+        lock.acquire()
+        user_audio_output = user_audio.export_sound()
+        if user_audio_output is not None:
+            udp_track_sender = threading.Thread(target=udp_stream.send_track, args=(user_audio_output, dst_ip, dst_sound_port))
+            udp_track_sender.start()
+        lock.release()
+
+        # handle participant sound stream
+        lock.acquire()
+        if udp_stream.received_tracks > last_participant_track:
+            participant_track = udp_stream.participant_track
+            user_audio.add_track(participant_track)
+            last_participant_track += 1
+        lock.release()
 
         # delay between each of the screen updates
         if cv2.waitKey(1) & 0xFF == ord('q'):

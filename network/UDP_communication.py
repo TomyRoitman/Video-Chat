@@ -1,3 +1,4 @@
+import pickle
 import socket
 import struct
 import threading
@@ -28,10 +29,11 @@ class UDPStream:
         self.height = 480
         self.width = 640
         self.buf = 1024
-        self.participant_track_chunks = [b'1'] * 3
+        self.participant_track_chunks = [b'1'] * 500
         self.running = True
         self.received_frames = 0
         self.received_tracks = 0
+        self.participant_track = None
         num_of_chunks = self.width * self.height * 3 / self.buf
         num_of_chunks = num_of_chunks * 0.09
         self.participant_frame_chunks = [b'\xc8\xcd\xdf\xc7\xcc\xde\xc6\xca\xde\xc6\xca\xde\xca\xca\xde\xca\xca\xde'
@@ -100,16 +102,17 @@ class UDPStream:
 
     def send_track(self, track, ip, port):
         buf = self.buf
-        chunks = [track[i:i + buf] for i in range(0, len(track), buf)]
+        serialized = pickle.dumps(track)
+        chunks = [serialized[i:i + buf] for i in range(0, len(serialized), buf)]
 
         addr = (ip, port)
         sock = self.sock
 
         last_index = len(chunks) - 1
         packed_last_index = struct.pack('!i', last_index)
-        times_to_send = 2
+        times_to_send = 1
         for j in range(times_to_send):
-            for i in chunks:
+            for i in range(len(chunks)):
                 packed_index = struct.pack('!i', i)
                 sock.sendto(packed_index + packed_last_index + chunks[i], addr)
 
@@ -132,12 +135,11 @@ class UDPStream:
                     if unpacked_new_last_index > 0:
                         unpacked_last_index = unpacked_new_last_index
                 # print(unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
-
                 chunk = chunk[8:]
                 self.participant_track_chunks[unpacked_index] = chunk
 
             byte_track = b''.join(self.participant_track_chunks[:unpacked_last_index + 1])
-            track = byte_track
+            track = pickle.loads(byte_track)
 
             self.lock.acquire()
             self.participant_track = track
