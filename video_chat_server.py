@@ -18,10 +18,11 @@ users_id = 0
 
 
 class User:
-    def __init__(self, msg_code, ip, port, username):
+    def __init__(self, msg_code, ip, video_port, sound_port, username):
         self.msg_code = msg_code
         self.ip = ip
-        self.port = port
+        self.video_port = video_port
+        self.sound_port = sound_port
         self.id = None
         self.matched = False
         self.match = ""
@@ -61,17 +62,20 @@ def send_by_size(client_socket, msg_code, content):
 def interpret_entry(msg):
     print(msg)
     params = msg.split(",")
-    id = params[0].split("=")[1]
-    username = params[-1].split("=")[1]
-    if len(params) > 2:
-        port = params[1].split("=")[1]
-        return id, port, username
+    if len(params) > 3:
+        id = params[0].split("=")[1]
+        video_port = params[1].split("=")[1]
+        sound_port = params[2].split("=")[1]
+        username = params[-1].split("=")[1]
+        return id, video_port, sound_port, username
     else:
-        port = id
-        return port, username
+        video_port = params[0].split("=")[1]
+        sound_port = params[1].split("=")[1]
+        username = params[-1].split("=")[1]
+        return video_port, sound_port, username
 
 def export_user_info(user):
-    return "ip={},port={},username={}".format(user.ip, user.port,user.username)
+    return "ip={},vport={},sport={},username={}".format(user.ip, user.video_port, user.sound_port, user.username)
 
 
 def handle_client(client_socket, address):
@@ -85,15 +89,16 @@ def handle_client(client_socket, address):
     new_user = ""
     if msg_code == "INIT":  # Initialize call
         # Save user in the global dictionary
-        port, username = interpret_entry(content)
-        port = int(port)
-        new_user = User(msg_code, ip_address, port, username)
+        video_port, sound_port, username = interpret_entry(content)
+        video_port = int(video_port)
+        sound_port = int(sound_port)
+        new_user = User(msg_code, ip_address, video_port, sound_port, username)
         lock.acquire()
         users_id += 1
         users[users_id] = new_user
         new_user.id = users_id
-
         lock.release()
+
         send_by_size(client_socket, "VCID", str(new_user.id).zfill(4))
         response = recv_by_size(client_socket)
         if response[2] != "OK":
@@ -114,10 +119,11 @@ def handle_client(client_socket, address):
 
     elif msg_code == "JOIN":
         # Save user in the global dictionary
-        id, port, username = interpret_entry(content)
-        port = int(port)
+        id, video_port, sound_port, username = interpret_entry(content)
+        video_port = int(video_port)
+        sound_port = int(sound_port)
         id = int(id)
-        new_user = User(msg_code, ip_address, int(port), username)
+        new_user = User(msg_code, ip_address, video_port, sound_port, username)
         lock = threading.Lock()
         lock.acquire()
         users_id += 1

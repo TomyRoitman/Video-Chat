@@ -11,11 +11,13 @@ from screens.insert_ID import InsertID
 import socket
 from network.TCP_communication import TCPStream
 from network.UDP_communication import UDPStream
+from audio_manager import Audio
 import threading
 
 FPS = 24
 UDP_IP = '0.0.0.0'
-UDP_PORT = 10000
+UDP_VIDEO_PORT = 10000
+UDP_AUDIO_PORT = 10001
 MSG_CODE_SIZE = 4
 MSG_SIZE_HEADER_SIZE = 8
 MSG_CHUNK_SIZE = 1024
@@ -51,9 +53,9 @@ def main():
     msg_code = choice
     msg = ""
     ID = ""
-    dst_ip, dst_port, dst_username = 0, 0, 0
+    dst_ip, dst_video_port, dst_sound_port, dst_username = 0, 0, 0, 0
     if choice == "INIT":
-        msg = "PORT={},USERNAME={}".format(UDP_PORT, username)
+        msg = "PORT={},USERNAME={}".format(UDP_VIDEO_PORT, UDP_AUDIO_PORT, username)
         tcp_stream.send_by_size(msg_code, msg)
         response = tcp_stream.recv_by_size()
         if response[0] != 'VCID':
@@ -73,8 +75,9 @@ def main():
         params = response[2].split(",")
         print(params)
         dst_ip = params[0].split("=")[1]
-        dst_port = int(params[1].split("=")[1])
-        dst_username = params[2].split("=")[1]
+        dst_video_port = int(params[1].split("=")[1])
+        dst_sound_port = int(params[2].split("=")[1])
+        dst_username = params[3].split("=")[1]
 
         # now move to chat screen
 
@@ -85,47 +88,81 @@ def main():
             insert_ID_screen.run()
         ID = insert_ID_screen.ID
 
-        msg = "ID={},PORT={},USERNAME={}".format(ID, UDP_PORT, username)
+        msg = "ID={},VPORT={},SPORT={},USERNAME={}".format(ID, UDP_VIDEO_PORT, UDP_AUDIO_PORT, username)
         tcp_stream.send_by_size(msg_code, msg)
         response = tcp_stream.recv_by_size()
         params = response[2].split(",")
         print(params)
         dst_ip = params[0].split("=")[1]
-        dst_port = int(params[1].split("=")[1])
-        dst_username = params[2].split("=")[1]
+        dst_video_port = int(params[1].split("=")[1])
+        dst_sound_port = int(params[2].split("=")[1])
+        dst_username = params[3].split("=")[1]
 
-
+    # initiate chat screen
     chat_screen = ChatWindow(screen, username, dst_username)
-    user_camera = Camera()
-    udp_stream = UDPStream(UDP_IP, UDP_PORT, FPS)
 
+    # initiate camera object
+    user_camera = Camera()
+
+    # initiate udp_stream object
+    udp_stream = UDPStream(UDP_IP, UDP_VIDEO_PORT, UDP_AUDIO_PORT, FPS)
+
+    # initiate method on a new thread to receive frames from participant
     frame_receiver = threading.Thread(target=udp_stream.recv_frame)  # , args=(dst_ip, dst_port))
     frame_receiver.start()
 
-    lock = threading.Lock()
+    # initiate video variables
     last_participant_frame = 0
+
+    lock = threading.Lock()
+
+    # initiate an audio object
+    user_aduio = Audio()
+
+    # initiate method on a new thread to receive sound from participant
+    sound_receiver = threading.Thread(target=udp_stream.received_tracks)
+    sound_receiver.start()
+
+    # initiate method on a new thread to play participant sound
+    sound_player = threading.Thread(target=user_aduio.play_sound)
+    sound_player.start()
+
+    # initiate method on a new thread to record user sound
+    sound_recorder = threading.Thread(target=user_aduio.sound_recorder)
+    sound_recorder.start()
+
     while chat_screen.running:
 
-        # handle user output
-
+        # handle user video stream
         user_output = user_camera.export_update_frame()
-        if user_output is not None:
-            udp_sender = threading.Thread(target=udp_stream.send_frame, args=(user_output[1], dst_ip, dst_port))
-            udp_sender.start()
+        if user_output:
+            udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
+                                                args=(user_output[1], dst_ip, dst_video_port))
+            udp_frame_sender.start()
             # udp_stream.send_frame(user_output[1], dst_ip, dst_port)
             chat_screen.update_user_input(user_output[0])
 
+        # handle participant video stream
         lock.acquire()
         if udp_stream.received_frames > last_participant_frame:
             chat_screen.update_participant_input(udp_stream.participant_frame)
             last_participant_frame += 1
         lock.release()
         chat_screen.run()
-        # print("FPS: ", user_window.get_fps())
-        # time.sleep(1 / FPS)
-        # pygame.time.wait(int((1.0 / FPS) * 1000))
+
+        # handle user sound stream
+        lock.acquire()
+        user_audio_output = user_aduio.export_sound()
+        if user_audio_output:
+            udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
+                                                args=(user_audio_output, dst_ip, dst_sound_port))
+            udp_frame_sender.start()
+        lock.release()
+
+        # delay between each of the screen updates
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
 
 if __name__ == '__main__':
     main()

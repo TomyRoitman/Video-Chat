@@ -20,14 +20,18 @@ MAX_SIZE_UDP_MSG = 65507
 
 class UDPStream:
 
-    def __init__(self, ip, port, FPS):
+    def __init__(self, ip, frame_port, audio_port, FPS):
         self.udp_ip = ip
-        self.udp_port = port
+        self.udp_frame_port = frame_port
+        self.udp_audio_port = audio_port
         self.participant_frame = None
         self.height = 480
         self.width = 640
         self.buf = 1024
+        self.participant_track_chunks = [b'1'] * 3
+        self.running = True
         self.received_frames = 0
+        self.received_tracks = 0
         num_of_chunks = self.width * self.height * 3 / self.buf
         num_of_chunks = num_of_chunks * 0.09
         self.participant_frame_chunks = [b'\xc8\xcd\xdf\xc7\xcc\xde\xc6\xca\xde\xc6\xca\xde\xca\xca\xde\xca\xca\xde'
@@ -94,6 +98,52 @@ class UDPStream:
         self.last = None
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+    def send_track(self, track, ip, port):
+        buf = self.buf
+        chunks = [track[i:i + buf] for i in range(0, len(track), buf)]
+
+        addr = (ip, port)
+        sock = self.sock
+
+        last_index = len(chunks) - 1
+        packed_last_index = struct.pack('!i', last_index)
+        times_to_send = 2
+        for j in range(times_to_send):
+            for i in chunks:
+                packed_index = struct.pack('!i', i)
+                sock.sendto(packed_index + packed_last_index + chunks[i], addr)
+
+    def recv_track(self):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        addr = (self.udp_ip, self.udp_audio_port)
+        sock.bind(addr)
+        while self.running:
+            packed_last_index = ""
+            unpacked_last_index = 1
+            unpacked_index = 0
+            while unpacked_index < unpacked_last_index:
+                chunk, _ = sock.recvfrom(self.buf + 8)
+                packed_index = chunk[:4]
+                unpacked_index = struct.unpack('!i', packed_index)[0]
+                if packed_last_index != chunk[4:8]:
+                    packed_last_index = chunk[4:8]
+                    unpacked_new_last_index = struct.unpack('!i', packed_last_index)[0]
+                    if unpacked_new_last_index > 0:
+                        unpacked_last_index = unpacked_new_last_index
+                # print(unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
+
+                chunk = chunk[8:]
+                self.participant_track_chunks[unpacked_index] = chunk
+
+            byte_track = b''.join(self.participant_track_chunks[:unpacked_last_index + 1])
+            track = byte_track
+
+            self.lock.acquire()
+            self.participant_track = track
+            self.received_tracks += 1
+            self.lock.release()
+
     def send_frame(self, frame, ip, port):
         addr = (ip, port)
         buf = self.buf
@@ -124,19 +174,18 @@ class UDPStream:
     def recv_frame(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        addr = (self.udp_ip, self.udp_port)
+        addr = (self.udp_ip, self.udp_frame_port)
         sock.bind(addr)
         num_of_chunks = self.width * self.height * 3 / self.buf
         # start_time = time.time()
         # x = 1  # displays the frame rate every 1 second
         # counter = 0
-        while True:
+        while self.running:
             packed_last_index = ""
             unpacked_last_index = 1
             unpacked_index = 0
             # print('\n\nstart: ', unpacked_index, '/', unpacked_last_index, packed_last_index)
             chunks_received = 0
-            start_log = time.time()
             while unpacked_index < unpacked_last_index:
                 chunks_received += 1
                 chunk, _ = sock.recvfrom(self.buf + 8)
@@ -166,3 +215,4 @@ class UDPStream:
             #     print("FPS: ", counter / (time.time() - start_time))
             #     counter = 0
             #     start_time = time.time()
+
