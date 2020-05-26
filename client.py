@@ -118,17 +118,17 @@ def main():
     # initiate an audio object
     user_aduio = Audio()
 
-    # initiate method on a new thread to receive sound from participant
-    sound_receiver = threading.Thread(target=udp_stream.received_tracks)
-    sound_receiver.start()
-
-    # initiate method on a new thread to play participant sound
-    sound_player = threading.Thread(target=user_aduio.play_sound)
-    sound_player.start()
-
-    # initiate method on a new thread to record user sound
-    sound_recorder = threading.Thread(target=user_aduio.sound_recorder)
-    sound_recorder.start()
+    # # initiate method on a new thread to receive sound from participant
+    # sound_receiver = threading.Thread(target=udp_stream.received_tracks)
+    # sound_receiver.start()
+    # 
+    # # initiate method on a new thread to play participant sound
+    # sound_player = threading.Thread(target=user_aduio.play_sound)
+    # sound_player.start()
+    #
+    # # initiate method on a new thread to record user sound
+    # sound_recorder = threading.Thread(target=user_aduio.sound_recorder)
+    # sound_recorder.start()
 
     while chat_screen.running:
 
@@ -150,13 +150,13 @@ def main():
         chat_screen.run()
 
         # handle user sound stream
-        lock.acquire()
-        user_audio_output = user_aduio.export_sound()
-        if user_audio_output is not None:
-            udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
-                                                args=(user_audio_output, dst_ip, dst_sound_port))
-            udp_frame_sender.start()
-        lock.release()
+        # lock.acquire()
+        # user_audio_output = user_aduio.export_sound()
+        # if user_audio_output is not None:
+        #     udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
+        #                                         args=(user_audio_output, dst_ip, dst_sound_port))
+        #     udp_frame_sender.start()
+        # lock.release()
 
         # delay between each of the screen updates
         if cv2.waitKey(1) & 0xFF == ord('q'):
