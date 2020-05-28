@@ -24,7 +24,7 @@ MSG_CHUNK_SIZE = 1024
 SERVER_IP = '192.168.1.41'
 SERVER_PORT = 11233
 DISPLAY_SIZE = [1280, 720]
-
+AUDIO_SECONDS = 2
 
 def main():
     # initialize pygame display
@@ -116,7 +116,7 @@ def main():
     lock = threading.Lock()
 
     # initiate an audio object
-    user_audio = Audio()
+    user_audio = Audio(seconds=AUDIO_SECONDS)
 
     # initiate method on a new thread to receive sound from participant
     sound_receiver = threading.Thread(target=udp_stream.recv_track)
@@ -129,7 +129,17 @@ def main():
     # initiate sound variables
     last_participant_track = 0
 
+    start_time = time.time()
+    to_start = False
+    print('1')
     while chat_screen.running:
+        # while udp_stream.received_frames < 1:
+        #     start_time = time.time()
+
+        if not to_start:
+            if time.time() - start_time > AUDIO_SECONDS + 0.98:
+                to_start = True
+
         # handle user video stream
         user_output = user_camera.export_update_frame()
         if user_output:
@@ -138,15 +148,14 @@ def main():
                                                 args=(user_output[1], dst_ip, dst_video_port))
             udp_frame_sender.start()
             # udp_stream.send_frame(user_output[1], dst_ip, dst_port)
-            chat_screen.update_user_input(user_output[0])
+            chat_screen.add_user_input(user_output[0])
 
         # handle participant video stream
         lock.acquire()
         if udp_stream.received_frames > last_participant_frame:
-            chat_screen.update_participant_input(udp_stream.participant_frame)
+            chat_screen.add_participant_input(udp_stream.participant_frame)
             last_participant_frame += 1
         lock.release()
-        chat_screen.run()
 
         # handle user sound stream
         lock.acquire()
@@ -164,9 +173,16 @@ def main():
             last_participant_track += 1
         lock.release()
 
+        if to_start:
+            chat_screen.run(participant=True)
+        else:
+            chat_screen.run()
+
         # delay between each of the screen updates
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
+
+        time.sleep(1.0 / FPS)
 
 
 if __name__ == '__main__':

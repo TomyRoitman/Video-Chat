@@ -25,10 +25,10 @@ class ChatWindow:
         # Fill background
         self.screen.fill(self.background_color)
 
-        self.user_input = None
+        self.user_input = []
         self.username = username
 
-        self.participant_input = None
+        self.participant_input = []
         self.participant_username = participant_username
 
         self.running = True
@@ -45,8 +45,9 @@ class ChatWindow:
         self.participant_username_text.x = FRAME_WIDTH + (FRAME_WIDTH - participant_username_text_size[0]) // 2
         self.frame_validation = [False, False]
 
-    def run(self):
+    def run(self, participant=False):
         self.events()
+        self.__blit_frames(participant)
         self.update()
         self.draw()
 
@@ -54,6 +55,7 @@ class ChatWindow:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+                self.terminate_window()
         #     if event.type == pygame.MOUSEBUTTONDOWN:
         #         if self.button.hovered:
         #             self.button.click()
@@ -74,22 +76,31 @@ class ChatWindow:
         pygame.display.update()
 
 
-    def update_user_input(self, frame):
+    def add_user_input(self, frame):
         frame_id = 0
         frame = self.__form_input(frame, frame_id)
         if self.frame_validation[frame_id]:
-            self.user_input = pygame.surfarray.make_surface(frame)
-            self.screen.blit(self.user_input, USER_INPUT_LOCATION)
+            self.user_input.append(pygame.surfarray.make_surface(frame))
+            # self.screen.blit(self.user_input, USER_INPUT_LOCATION)
 
-    def update_participant_input(self, frame):
+    def add_participant_input(self, frame):
         frame_id = 1
         frame = self.__form_input(frame, frame_id)
         if self.frame_validation[frame_id]:
-            self.participant_input = pygame.surfarray.make_surface(frame)
-            self.screen.blit(self.participant_input, PARTICIPANT_INPUT_LOCATION)
+            self.participant_input.append(pygame.surfarray.make_surface(frame))
+            # self.screen.blit(self.participant_input, PARTICIPANT_INPUT_LOCATION)
 
     def terminate_window(self):
         pygame.quit()
+
+    def __blit_frames(self, participant):
+        if participant and self.participant_input:
+            participant_frame = self.participant_input.pop(0)
+            self.screen.blit(participant_frame, PARTICIPANT_INPUT_LOCATION)
+
+        if self.user_input:
+            user_frame = self.user_input.pop(0)
+            self.screen.blit(user_frame, USER_INPUT_LOCATION)
 
     def __form_input(self, frame, frame_id):
         try:

@@ -7,9 +7,9 @@ from scipy.io.wavfile import write
 
 class Audio():
 
-    def __init__(self, muted=False, FPS=24):
+    def __init__(self, seconds, muted=False, FPS=24):
         self.fs = 44100  # Sample rate
-        self.seconds = 1
+        self.seconds = seconds
         self.current_playing = None
         self.participant_tracks_in_queue = []
         self.running = True
@@ -22,10 +22,10 @@ class Audio():
             if not self.muted:
                 if self.participant_tracks_in_queue:
                     current_playing = self.participant_tracks_in_queue.pop(0)
-                    recording = sd.playrec(current_playing, samplerate=self.fs, channels=2)
+                    recording = sd.playrec(current_playing, samplerate=self.fs, channels=1)
                     sd.wait()
                 else:
-                    recording = sd.rec(int(self.seconds * self.fs), samplerate=self.fs, channels=2)
+                    recording = sd.rec(int(self.seconds * self.fs), samplerate=self.fs, channels=1)
                     sd.wait()
                 self.lock.acquire()
                 self.user_tracks_in_queue.append(recording)
