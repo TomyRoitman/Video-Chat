@@ -9,14 +9,13 @@ class Audio():
 
     def __init__(self, muted=False, FPS=24):
         self.fs = 44100  # Sample rate
-        self.seconds = 1
+        self.seconds = 0.5
         self.current_playing = None
         self.participant_tracks_in_queue = []
         self.running = True
         self.muted = muted
         self.user_tracks_in_queue = []
         self.lock = threading.Lock()
-
 
     def sound_recorder(self):
         while self.running:
@@ -31,9 +30,9 @@ class Audio():
 
     def export_sound(self):
         if not self.muted and self.user_tracks_in_queue:
-            self.lock.acquire()
+            # self.lock.acquire()
             recording = self.user_tracks_in_queue.pop(0)
-            self.lock.release()
+            # self.lock.release()
             return recording
         else:
             return None
@@ -48,16 +47,19 @@ class Audio():
         return True
 
     def play_sound(self):
-
+        seconds = self.seconds
         while self.running:
             if self.participant_tracks_in_queue:
+                print('playing sound')
                 current_playing = self.participant_tracks_in_queue.pop(0)
-                # sd.play(self.current_playing)
+                # sd.play(current_playing, int(self.seconds * self.fs))
                 # sd.wait()
                 thread = AudioThread(current_playing)
+                thread.set_duration(int(self.seconds * self.fs))
                 thread.start()
                 time.sleep(self.seconds)
                 thread.stop()
+
 
 # seconds = 3  # Duration of recording
 # print('recording')
@@ -74,8 +76,11 @@ class AudioThread(threading.Thread):
         threading.Thread.__init__(self)
         self.track = track
 
+    def set_duration(self, duration):
+        self.duration = duration
+
     def run(self):
-        sd.play(self.track, blocking=True)
+        sd.play(self.track, self.duration, blocking=True)
 
     def stop(self):
         sd.stop()

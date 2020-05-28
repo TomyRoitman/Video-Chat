@@ -21,7 +21,7 @@ UDP_AUDIO_PORT = 10001
 MSG_CODE_SIZE = 4
 MSG_SIZE_HEADER_SIZE = 8
 MSG_CHUNK_SIZE = 1024
-SERVER_IP = '192.168.99.92'
+SERVER_IP = '192.168.1.41'
 SERVER_PORT = 11233
 DISPLAY_SIZE = [1280, 720]
 
@@ -134,11 +134,11 @@ def main():
     last_participant_track = 0
 
     while chat_screen.running:
-
         # handle user video stream
         user_output = user_camera.export_update_frame()
         if user_output:
             udp_frame_sender = threading.Thread(target=udp_stream.send_frame,
+
                                                 args=(user_output[1], dst_ip, dst_video_port))
             udp_frame_sender.start()
             # udp_stream.send_frame(user_output[1], dst_ip, dst_port)
@@ -160,13 +160,13 @@ def main():
             udp_track_sender.start()
         lock.release()
 
-        # handle participant sound stream
-        lock.acquire()
-        if udp_stream.received_tracks > last_participant_track:
-            participant_track = udp_stream.participant_track
-            user_audio.add_track(participant_track)
-            last_participant_track += 1
-        lock.release()
+        # # handle participant sound stream
+        # lock.acquire()
+        # if udp_stream.received_tracks > last_participant_track:
+        #     participant_track = udp_stream.participant_track
+        #     user_audio.add_track(participant_track)
+        #     last_participant_track += 1
+        # lock.release()
 
         # delay between each of the screen updates
         if cv2.waitKey(1) & 0xFF == ord('q'):
