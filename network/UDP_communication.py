@@ -35,7 +35,7 @@ class UDPStream:
         self.received_tracks = 0
         self.participant_track = None
         num_of_chunks = self.width * self.height * 3 / self.buf
-        num_of_chunks = num_of_chunks * 0.09
+        num_of_chunks = num_of_chunks * 0.15
         self.participant_frame_chunks = [b'\xc8\xcd\xdf\xc7\xcc\xde\xc6\xca\xde\xc6\xca\xde\xca\xca\xde\xca\xca\xde'
                                          b'\xca\xcc\xd7\xcb\xcd\xd8\xc8\xca\xde\xc5\xc8\xdc\xc8\xc7\xd7\xc8\xc7\xd7'
                                          b'\xc9\xca\xd9\xc9\xca\xd9\xc5\xc9\xd8\xc4\xc7\xd7\xc5\xc8\xdc\xc7\xc9\xdd'
@@ -201,7 +201,8 @@ class UDPStream:
                 # print(unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
 
                 chunk = chunk[8:]
-                self.participant_frame_chunks[unpacked_index] = chunk
+                if unpacked_index < len(self.participant_track_chunks):
+                    self.participant_frame_chunks[unpacked_index] = chunk
 
             # print('end: ', unpacked_index, packed_index, '/', unpacked_last_index, packed_last_index)
             byte_frame = b''.join(self.participant_frame_chunks[:unpacked_last_index + 2])

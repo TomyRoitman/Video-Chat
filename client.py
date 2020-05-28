@@ -122,10 +122,6 @@ def main():
     sound_receiver = threading.Thread(target=udp_stream.recv_track)
     sound_receiver.start()
 
-    # initiate method on a new thread to play participant sound
-    sound_player = threading.Thread(target=user_audio.play_sound)
-    sound_player.start()
-
     # initiate method on a new thread to record user sound
     sound_recorder = threading.Thread(target=user_audio.sound_recorder)
     sound_recorder.start()
@@ -160,13 +156,13 @@ def main():
             udp_track_sender.start()
         lock.release()
 
-        # # handle participant sound stream
-        # lock.acquire()
-        # if udp_stream.received_tracks > last_participant_track:
-        #     participant_track = udp_stream.participant_track
-        #     user_audio.add_track(participant_track)
-        #     last_participant_track += 1
-        # lock.release()
+        # handle participant sound stream
+        lock.acquire()
+        if udp_stream.received_tracks > last_participant_track:
+            participant_track = udp_stream.participant_track
+            user_audio.add_track(participant_track)
+            last_participant_track += 1
+        lock.release()
 
         # delay between each of the screen updates
         if cv2.waitKey(1) & 0xFF == ord('q'):

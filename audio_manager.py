@@ -9,7 +9,7 @@ class Audio():
 
     def __init__(self, muted=False, FPS=24):
         self.fs = 44100  # Sample rate
-        self.seconds = 0.5
+        self.seconds = 1
         self.current_playing = None
         self.participant_tracks_in_queue = []
         self.running = True
@@ -20,8 +20,13 @@ class Audio():
     def sound_recorder(self):
         while self.running:
             if not self.muted:
-                recording = sd.rec(int(self.seconds * self.fs), samplerate=self.fs, channels=1)
-                sd.wait()
+                if self.participant_tracks_in_queue:
+                    current_playing = self.participant_tracks_in_queue.pop(0)
+                    recording = sd.playrec(current_playing, samplerate=self.fs, channels=2)
+                    sd.wait()
+                else:
+                    recording = sd.rec(int(self.seconds * self.fs), samplerate=self.fs, channels=2)
+                    sd.wait()
                 self.lock.acquire()
                 self.user_tracks_in_queue.append(recording)
                 self.lock.release()
@@ -48,17 +53,20 @@ class Audio():
 
     def play_sound(self):
         seconds = self.seconds
+        starting_time = time.time()
         while self.running:
-            if self.participant_tracks_in_queue:
-                print('playing sound')
-                current_playing = self.participant_tracks_in_queue.pop(0)
-                # sd.play(current_playing, int(self.seconds * self.fs))
-                # sd.wait()
-                thread = AudioThread(current_playing)
-                thread.set_duration(int(self.seconds * self.fs))
-                thread.start()
-                time.sleep(self.seconds)
-                thread.stop()
+            if time.time() - starting_time >= self.seconds:
+                if self.participant_tracks_in_queue:
+                    current_playing = self.participant_tracks_in_queue.pop(0)
+                    print('playing sound')
+                    sd.play(current_playing)
+                    # sd.wait()
+                    # thread = AudioThread(current_playing)
+                    # thread.set_duration(int(self.seconds * self.fs))
+                    # thread.start()
+                    # time.sleep(self.seconds)
+                    # thread.stop()
+                starting_time = time.time()
 
 
 # seconds = 3  # Duration of recording
