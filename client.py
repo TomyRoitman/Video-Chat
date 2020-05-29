@@ -26,6 +26,7 @@ SERVER_PORT = 11233
 DISPLAY_SIZE = [1280, 720]
 AUDIO_SECONDS = 2
 
+
 def main():
     # initialize pygame display
     pygame.init()
@@ -133,12 +134,14 @@ def main():
     to_start = False
     print('1')
     while chat_screen.running:
-        # while udp_stream.received_frames < 1:
-        #     start_time = time.time()
 
         if not to_start:
-            if time.time() - start_time > AUDIO_SECONDS + 0.98:
+            lock.acquire()
+            if udp_stream.received_tracks > 0:
                 to_start = True
+            lock.release()
+            # if time.time() - start_time > AUDIO_SECONDS + 0.98:
+            #     to_start = True
 
         # handle user video stream
         user_output = user_camera.export_update_frame()
@@ -161,7 +164,8 @@ def main():
         lock.acquire()
         user_audio_output = user_audio.export_sound()
         if user_audio_output is not None:
-            udp_track_sender = threading.Thread(target=udp_stream.send_track, args=(user_audio_output, dst_ip, dst_sound_port))
+            udp_track_sender = threading.Thread(target=udp_stream.send_track,
+                                                args=(user_audio_output, dst_ip, dst_sound_port))
             udp_track_sender.start()
         lock.release()
 
@@ -177,10 +181,6 @@ def main():
             chat_screen.run(participant=True)
         else:
             chat_screen.run()
-
-        # delay between each of the screen updates
-        # if cv2.waitKey(1) & 0xFF == ord('q'):
-        #     break
 
         time.sleep(1.0 / FPS)
 
