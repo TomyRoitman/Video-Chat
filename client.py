@@ -124,7 +124,7 @@ def main():
     sound_receiver.start()
 
     # initiate method on a new thread to record user sound
-    sound_recorder = threading.Thread(target=user_audio.sound_recorder)
+    sound_recorder = threading.Thread(target=user_audio.sound_recorder, args=(False,))
     sound_recorder.start()
 
     # initiate sound variables
@@ -133,15 +133,8 @@ def main():
     start_time = time.time()
     to_start = False
     print('1')
+    print(time.time(), 'starting')
     while chat_screen.running:
-
-        if not to_start:
-            lock.acquire()
-            if udp_stream.received_tracks > 0:
-                to_start = True
-            lock.release()
-            # if time.time() - start_time > AUDIO_SECONDS + 0.98:
-            #     to_start = True
 
         # handle user video stream
         user_output = user_camera.export_update_frame()
@@ -176,6 +169,15 @@ def main():
             user_audio.add_track(participant_track)
             last_participant_track += 1
         lock.release()
+        print('tracks: ', last_participant_track)
+
+        if not to_start:
+            if last_participant_track > 0 and user_audio.state == 1:
+                to_start = True
+                # time.sleep(0.2)
+                latency = time.time() - start_time
+                print('latency: ', latency)
+
 
         if to_start:
             chat_screen.run(participant=True)

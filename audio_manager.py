@@ -16,17 +16,32 @@ class Audio():
         self.muted = muted
         self.user_tracks_in_queue = []
         self.lock = threading.Lock()
+        self.total_tracks = 0
+        self.state = 0
 
-    def sound_recorder(self):
+    def sound_recorder(self, record_only=True):
+        recording = sd.rec(int(self.seconds * self.fs), samplerate=self.fs, channels=1)
+        sd.wait()
+        self.lock.acquire()
+        self.user_tracks_in_queue.append(recording)
+        self.lock.release()
         while self.running:
             if not self.muted:
                 if self.participant_tracks_in_queue:
+                    # print(time.time(), 'playing')
                     current_playing = self.participant_tracks_in_queue.pop(0)
+                    self.state = 1
                     recording = sd.playrec(current_playing, samplerate=self.fs, channels=1)
                     sd.wait()
-                else:
+                    # print(time.time(), 'finished playing')
+
+                elif self.total_tracks == 0 or record_only:
+                    # print(time.time(), 'recording')
+                    self.state = 2
                     recording = sd.rec(int(self.seconds * self.fs), samplerate=self.fs, channels=1)
                     sd.wait()
+                    # print(time.time(), 'finished recording')
+
                 self.lock.acquire()
                 self.user_tracks_in_queue.append(recording)
                 self.lock.release()
@@ -46,6 +61,7 @@ class Audio():
         if self.__is_valid_track(track):
             self.lock.acquire()
             self.participant_tracks_in_queue.append(track)
+            self.total_tracks += 1
             self.lock.release()
 
     def __is_valid_track(self, track):
