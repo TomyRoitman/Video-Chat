@@ -169,7 +169,9 @@ def main():
             user_audio.add_track(participant_track)
             last_participant_track += 1
         lock.release()
-        print('tracks: ', last_participant_track)
+        if last_participant_track > 0:
+            print('tracks: ', last_participant_track)
+
 
         if not to_start:
             if last_participant_track > 0 and user_audio.state == 1:

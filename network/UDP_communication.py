@@ -2,6 +2,7 @@ import pickle
 import socket
 import struct
 import threading
+import zlib
 import time
 
 import numpy as np
@@ -103,7 +104,8 @@ class UDPStream:
     def send_track(self, track, ip, port):
         buf = self.buf
         serialized = pickle.dumps(track)
-        chunks = [serialized[i:i + buf] for i in range(0, len(serialized), buf)]
+        compressed = zlib.compress(serialized, 3)
+        chunks = [compressed[i:i + buf] for i in range(0, len(compressed), buf)]
 
         addr = (ip, port)
         sock = self.sock
@@ -139,12 +141,16 @@ class UDPStream:
                 self.participant_track_chunks[unpacked_index] = chunk
 
             byte_track = b''.join(self.participant_track_chunks[:unpacked_last_index + 1])
-            track = pickle.loads(byte_track)
+            try:
+                decompressed = zlib.decompress(byte_track)
+                track = pickle.loads(decompressed)
 
-            self.lock.acquire()
-            self.participant_track = track
-            self.received_tracks += 1
-            self.lock.release()
+                self.lock.acquire()
+                self.participant_track = track
+                self.received_tracks += 1
+                self.lock.release()
+            except zlib.error as e:
+                print('Error: ', e)
 
     def send_frame(self, frame, ip, port):
         addr = (ip, port)
