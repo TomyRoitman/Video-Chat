@@ -27,11 +27,11 @@ def get_my_CNN_model_architecture():
 
     model.add(Flatten())
 
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(128, activation='relu'))
-    model.add(Dense(256, activation='relu'))
-    model.add(Dense(64, activation='relu'))
-    model.add(Dense(30))
+    model.add(Dense(68, activation='relu'))
+    model.add(Dense(136, activation='relu'))
+    model.add(Dense(272, activation='relu'))
+    # model.add(Dense(68, activation='relu'))
+    model.add(Dense(136))
 
     return model;
 

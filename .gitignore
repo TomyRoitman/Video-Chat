@@ -1,6 +1,10 @@
 venv/
 client2.py
 try.py
-__pycache__/
 experiment/
 .idea/
+.idea
+venv
+.vscode
+__pycache__
+/CNN/dataset
