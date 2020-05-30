@@ -8,7 +8,7 @@ from scipy.io.wavfile import write
 class Audio():
 
     def __init__(self, seconds, muted=False, FPS=24):
-        self.fs = 44100  # Sample rate
+        self.fs = 10240 #44100  # Sample rate
         self.seconds = seconds
         self.current_playing = None
         self.participant_tracks_in_queue = []
