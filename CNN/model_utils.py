@@ -11,7 +11,7 @@ def gray_scale(images):
     # 0.2989 * R + 0.5870 * G + 0.1140 * B
     # source: https://www.mathworks.com/help/matlab/ref/rgb2gray.html
 
-    images = [0.2989 * images[:, :, :, 0] + 0.5870 * images[:, :, :, 1] + 0.1140 * images[:, :, :, 2]]
+    images = 0.2989 * images[:, :, :, 0] + 0.5870 * images[:, :, :, 1] + 0.1140 * images[:, :, :, 2]
     return images
 
 
@@ -51,7 +51,8 @@ def load_data():
     X = np.array(X)
     print(X.shape)
     X = gray_scale(X)
-    print('after gray_scale: ', X.shape)
+    X = X.reshape(X.shape[0], X.shape[1], X.shape[2], 1)
+    print('X after gray_scale & reshaping: ', X.shape)
     y = np.array(y)
     print(y.shape)
 
