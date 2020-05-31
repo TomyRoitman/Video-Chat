@@ -11,7 +11,7 @@ def gray_scale(images):
     # 0.2989 * R + 0.5870 * G + 0.1140 * B
     # source: https://www.mathworks.com/help/matlab/ref/rgb2gray.html
 
-    images = 0.2989 * images[:, :, :, 0] + 0.5870 * images[:, :, :, 1] + 0.1140 * images[:, :, :, 2]
+    images = [0.2989 * images[:, :, :, 0] + 0.5870 * images[:, :, :, 1] + 0.1140 * images[:, :, :, 2]]
     return images
 
 
@@ -41,8 +41,8 @@ def load_data():
                 cropped = image[top_left[0]:down_right[0], top_left[1]:down_right[1]]
                 try:
                     resized = cv2.resize(cropped, dsize=SIZE, interpolation=cv2.INTER_CUBIC)
-                    print(cropped.shape)
-                    print(resized.shape)
+                    # print(cropped.shape)
+                    # print(resized.shape)
                     X.append(resized)
                     y.append(result)
                 except cv2.error:

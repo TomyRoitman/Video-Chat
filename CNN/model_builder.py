@@ -3,8 +3,11 @@ from my_CNN_model import *
 import cv2
 
 # Load training set
+print('started loading')
 X_train, y_train = load_data()
-
+print('loaded data')
+if X_train.shape[0] == y_train.shape[0]:
+    print('frames: ', X_train.shape[0])
 # NOTE: Please check the load_data() method in utils.py to see how the data is preprocessed (normalizations and stuff)
 
 
