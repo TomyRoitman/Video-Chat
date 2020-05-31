@@ -10,7 +10,7 @@ def get_my_CNN_model_architecture():
     corresponding to the predicted (horizontal and vertical) locations of 15 facial keypoints.
     '''
     model = Sequential()
-    model.add(Convolution2D(32, (5, 5), input_shape=(96,96,1), activation='relu'))
+    model.add(Convolution2D(68, (5, 5), input_shape=(96,96,1), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Convolution2D(64, (3, 3), activation='relu'))

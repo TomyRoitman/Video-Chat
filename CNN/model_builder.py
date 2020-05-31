@@ -1,4 +1,4 @@
-from utils import load_data
+from model_utils import load_data
 from my_CNN_model import *
 import cv2
 
