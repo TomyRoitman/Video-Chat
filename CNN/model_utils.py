@@ -55,6 +55,9 @@ def load_data():
     print('X after gray_scale & reshaping: ', X.shape)
     y = np.array(y)
     print(y.shape)
+    print(y.shape[0], y.shape[1]*y.shape[2])
+    y = y.reshape(y.shape[0], y.shape[1] * y.shape[2])
+    print('y after reshaping: ', y.shape)
 
     return X, y
 # TODO: transpose V

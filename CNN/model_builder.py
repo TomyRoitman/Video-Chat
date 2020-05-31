@@ -6,6 +6,7 @@ import numpy as np
 # Load training set
 print('started loading')
 X_train, y_train = load_data()
+# X_train, y_train = np.random.randint(0, 100, (2, 96, 96, 1)), np.random.randint(0, 100, (2, 136))
 print('loaded data')
 if X_train.shape[0] == y_train.shape[0]:
     print('frames: ', X_train.shape[0])
