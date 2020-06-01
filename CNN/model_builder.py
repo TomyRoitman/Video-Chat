@@ -11,12 +11,13 @@ print('loaded data')
 if X_train.shape[0] == y_train.shape[0]:
     print('frames: ', X_train.shape[0])
 # NOTE: Please check the load_data() method in utils.py to see how the data is preprocessed (normalizations and stuff)
+# my_model = load_my_CNN_model('my_model')
 
 
 # Setting the CNN architecture
 my_model = get_my_CNN_model_architecture()
-
-# Compiling the CNN model with an appropriate optimizer and loss and metrics
+#
+# # Compiling the CNN model with an appropriate optimizer and loss and metrics
 compile_my_CNN_model(my_model, optimizer='adam', loss='mean_squared_error', metrics=['accuracy'])
 
 # Training the model
