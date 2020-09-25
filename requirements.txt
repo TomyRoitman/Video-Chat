@@ -8,5 +8,5 @@ scikit-learn==0.22.2.post1
 scipy==1.4.1
 sklearn==0.0
 sounddevice==0.3.15
-tensorflow==2.2.0
+tensorflow==2.2.1
 virtualenv==20.0.17
